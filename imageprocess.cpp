@@ -90,23 +90,28 @@ void imageprocess::zoom(uchar *imgO, uchar *imgD, float s, int dx, int dy) {
 void imageprocess::volteoHorizontal(uchar *imgO, uchar *imgD) {
 
 	asm volatile(
-	"mov %0, %%rsi\n\t"
-	"mov %1, %%rdi\n\t"
+	"mov %0, %%rsi\n\t"					// Copia en %rsi la direccion de la imagen origen imgO
+	"mov %1, %%rdi\n\t"					// Copia en %rdi la direccion de la imagen destino imgD
 	"add $639, %%rsi\n\t"
-	"xor %%rcx, %%rcx\n\t"
+
+	"xor %%rcx, %%rcx\n\t"				// Inicializa el contador del bucle externo %rcx a 0
 	"bucleFilas:\n\t"
-		"xor %%rdx, %%rdx\n\t"
+		"xor %%rdx, %%rdx\n\t"			// Inicializa el contador del bucle interno %rdx a 0
 		"bucleColumnas:\n\t"
+  			// Copia cada pixel calculado de imgO en imgD
 			"mov (%%rsi), %%r8\n\t"
 			"mov %%r8, (%%rdi)\n\t"
+
 			"dec %%rsi\n\t"
 			"inc %%rdi\n\t"
-			"inc %%rdx\n\t"
-			"cmp $640, %%rdx\n\t"
+
+			"inc %%rdx\n\t"				// Incrementa el contador del bucle interno %rdx
+			"cmp $640, %%rdx\n\t"		// Control de iteracion del bucle interno
 			"jl bucleColumnas\n\t"
 		"add $1280, %%rsi\n\t"
-		"inc %%rcx\n\t"
-		"cmp $640, %%rcx\n\t"
+
+		"inc %%rcx\n\t"					// Incrementa el contador del bucle externo %rcx
+		"cmp $640, %%rcx\n\t"			// Control de iteracion del bucle externo
 		"jl bucleFilas\n\t"
 
 	:
