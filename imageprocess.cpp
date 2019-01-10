@@ -21,179 +21,175 @@
 #include "imageprocess.h"
 
 
-void imageprocess::rotar(uchar * imgO, uchar * imgD, float angle)
-{
-    short cw;
-    int sin1000, cos1000;
+void imageprocess::rotar(uchar *imgO, uchar *imgD, float angle) {
+	short cw;
+	int sin, cos;
+	int cO, fO, cD, fD;
 
-    sin1000 = sin(angle)*1000.;
-    cos1000 = cos(angle)*1000.;
-
-    asm volatile(
-        "fstcw %3\n\t"
-        "fwait\n\t"
-        "mov %3, %%ax\n\t"
-        "and $0xf3ff, %%ax\n\t"
-        "or $0x0c00, %%ax\n\t"
-        "push %%rax\n\t"
-        "fldcw (%%rsp)\n\t"
-        "pop %%rax\n\t"
+	asm volatile(
+	"fstcw %3\n\t"
+	"fwait\n\t"
+	"mov %3, %%ax\n\t"
+	"and $0xf3ff, %%ax\n\t"
+	"or $0x0c00, %%ax\n\t"
+	"push %%rax\n\t"
+	"fldcw (%%rsp)\n\t"
+	"pop %%rax\n\t"
 
 
-        //Insertar aquí el código del procedimiento
+	//Insertar aquí el código del procedimiento
 
+	"fldcw %3\n\t"
 
-        "fldcw %3\n\t"
+	:
+	: "m" (imgO), "m" (imgD), "m" (angle), "m" (cw), "m" (sin), "m" (cos), "m" (cO), "m" (fO), "m" (cD), "m" (fD)
+	: "%rsi", "%rdi", "%rcx", "%rdx", "memory"
 
-        :
-        : "m" (imgO), "m" (imgD), "m" (angle), "m" (cw), "m" (sin1000), "m" (cos1000)
-        : "memory"
-
-    );
-
-
+	);
 }
 
-void imageprocess::zoom(uchar * imgO, uchar * imgD, float s, int dx, int dy)
-{
-    short cw;
-    int sInt;
-    int ampliar;
+void imageprocess::zoom(uchar *imgO, uchar *imgD, float s, int dx, int dy) {
+	short cw;
+	int sInt;
+	int ampliar;
 
 
-    if(s>=1)
-    {
-        sInt = s;
-        ampliar = 1;
-    }
-    else
-    {
-        sInt = rint(1./s);
-        ampliar = 0;
-    }
+	if (s >= 1) {
+		sInt = s;
+		ampliar = 1;
+	} else {
+		sInt = rint(1. / s);
+		ampliar = 0;
+	}
 
-    asm volatile(
-        "fstcw %5\n\t"
-        "fwait\n\t"
-        "mov %5, %%ax\n\t"
-        "and $0xf3ff, %%ax\n\t"
-        "or $0x0c00, %%ax\n\t"
-        "push %%rax\n\t"
-        "fldcw (%%rsp)\n\t"
-        "pop %%rax\n\t"
+	asm volatile(
+	"fstcw %5\n\t"
+	"fwait\n\t"
+	"mov %5, %%ax\n\t"
+	"and $0xf3ff, %%ax\n\t"
+	"or $0x0c00, %%ax\n\t"
+	"push %%rax\n\t"
+	"fldcw (%%rsp)\n\t"
+	"pop %%rax\n\t"
 
-        //Insertar aquí el código del procedimiento
+	//Insertar aquí el código del procedimiento
 
 
-        "fldcw %5\n\t"
+	"fldcw %5\n\t"
 
-        :
-        : "m" (imgO), "m" (imgD), "m" (s), "m" (dx), "m" (dy), "m" (cw), "m" (sInt), "m" (ampliar)
-        : "memory"
+	:
+	: "m" (imgO), "m" (imgD), "m" (s), "m" (dx), "m" (dy), "m" (cw), "m" (sInt), "m" (ampliar)
+	: "memory"
 
-    );
+	);
 
 
 }
 
 
+void imageprocess::volteoHorizontal(uchar *imgO, uchar *imgD) {
 
-void imageprocess::volteoHorizontal(uchar * imgO, uchar * imgD)
-{
+	asm volatile(
+	"mov %0, %%rsi\n\t"
+	"mov %1, %%rdi\n\t"
+	"add $639, %%rsi\n\t"
+	"xor %%rcx, %%rcx\n\t"
+	"bucleFilas:\n\t"
+		"xor %%rdx, %%rdx\n\t"
+		"bucleColumnas:\n\t"
+			"mov (%%rsi), %%r8\n\t"
+			"mov %%r8, (%%rdi)\n\t"
+			"dec %%rsi\n\t"
+			"inc %%rdi\n\t"
+			"inc %%rdx\n\t"
+			"cmp $640, %%rdx\n\t"
+			"jl bucleColumnas\n\t"
+		"add $1280, %%rsi\n\t"
+		"inc %%rcx\n\t"
+		"cmp $640, %%rcx\n\t"
+		"jl bucleFilas\n\t"
 
-    asm volatile(
-        "\n\t"
-
-
-        :
-        : "m" (imgO),	"m" (imgD)
-        : "memory"
-    );
-  
-}
-
-void imageprocess::volteoVertical(uchar * imgO, uchar * imgD)
-{
-
-    asm volatile(
-        "\n\t"
-
-
-        :
-        : "m" (imgO),	"m" (imgD)
-        : "memory"
-    );
-
-}
-
-
-void imageprocess::iluminarLUT(uchar * tablaLUT, uchar gW)
-{
-    asm volatile(
-        "\n\t"
-
-
-        :
-        : "m" (tablaLUT), "m" (gW)
-        : "memory"
-    );
+	:
+	: "m" (imgO), "m" (imgD)
+	: "%rsi", "%rdi", "%rcx", "%rdx", "r8", "memory"
+	);
 
 }
 
-void imageprocess::oscurecerLUT(uchar * tablaLUT, uchar gB)
-{
-    asm volatile(
-        "\n\t"
+void imageprocess::volteoVertical(uchar *imgO, uchar *imgD) {
+
+	asm volatile(
+	"\n\t"
 
 
-        :
-        : "m" (tablaLUT), "m" (gB)
-        : "memory"
-    );
+	:
+	: "m" (imgO), "m" (imgD)
+	: "memory"
+	);
 
 }
 
 
-void imageprocess::iluminarLUTMejorado(uchar * tablaLUT, uchar gW)
-{
-    asm volatile(
-        "\n\t"
+void imageprocess::iluminarLUT(uchar *tablaLUT, uchar gW) {
+	asm volatile(
+	"\n\t"
 
 
-        :
-        : "m" (tablaLUT), "m" (gW)
-        : "memory"
-    );
+	:
+	: "m" (tablaLUT), "m" (gW)
+	: "memory"
+	);
+
+}
+
+void imageprocess::oscurecerLUT(uchar *tablaLUT, uchar gB) {
+	asm volatile(
+	"\n\t"
+
+
+	:
+	: "m" (tablaLUT), "m" (gB)
+	: "memory"
+	);
 
 }
 
 
-
-void imageprocess::oscurecerLUTMejorado(uchar * tablaLUT, uchar gB)
-{
-    asm volatile(
-        "\n\t"
+void imageprocess::iluminarLUTMejorado(uchar *tablaLUT, uchar gW) {
+	asm volatile(
+	"\n\t"
 
 
-        :
-        : "m" (tablaLUT), "m" (gB)
-        : "memory"
-    );
+	:
+	: "m" (tablaLUT), "m" (gW)
+	: "memory"
+	);
 
 }
 
 
-
-void imageprocess::aplicarTablaLUT(uchar * tablaLUT, uchar * imgO, uchar * imgD)
-{
-    asm volatile(
-        "\n\t"
+void imageprocess::oscurecerLUTMejorado(uchar *tablaLUT, uchar gB) {
+	asm volatile(
+	"\n\t"
 
 
-        :
-        : "m" (imgO), "m" (tablaLUT), "m" (imgD)
-        : "memory"
-    );
+	:
+	: "m" (tablaLUT), "m" (gB)
+	: "memory"
+	);
+
+}
+
+
+void imageprocess::aplicarTablaLUT(uchar *tablaLUT, uchar *imgO, uchar *imgD) {
+	asm volatile(
+	"\n\t"
+
+
+	:
+	: "m" (imgO), "m" (tablaLUT), "m" (imgD)
+	: "memory"
+	);
 
 }
 
