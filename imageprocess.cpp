@@ -94,9 +94,9 @@ void imageprocess::volteoHorizontal(uchar *imgO, uchar *imgD) {
 	"mov %1, %%rdi\n\t"					// Copia en %rdi la direccion de la imagen destino imgD
 	"add $639, %%rsi\n\t"
 
-	"xor %%rcx, %%rcx\n\t"				// Inicializa el contador del bucle externo %rcx a 0
+	"xor %%rcx, %%rcx\n\t"				// Inicializa el contador del bucle externo %rcx a 0 (cada fila)
 	"bucleFilasVH:\n\t"
-		"xor %%rdx, %%rdx\n\t"			// Inicializa el contador del bucle interno %rdx a 0
+		"xor %%rdx, %%rdx\n\t"			// Inicializa el contador del bucle interno %rdx a 0 (cada columna)
 		"bucleColumnasVH:\n\t"
   			// Copia cada pixel calculado de imgO en imgD
 			"mov (%%rsi), %%r8\n\t"
@@ -128,9 +128,9 @@ void imageprocess::volteoVertical(uchar *imgO, uchar *imgD) {
 	"mov %1, %%rdi\n\t"					// Copia en %rdi la direccion de la imagen destino imgD
 	"add $306560, %%rsi\n\t"			// 479*640 = 306560
 
-	"xor %%rcx, %%rcx\n\t"				// Inicializa el contador del bucle externo %rcx a 0
+	"xor %%rcx, %%rcx\n\t"				// Inicializa el contador del bucle externo %rcx a 0 (cada fila)
 	"bucleFilasVV:\n\t"
-		"xor %%rdx, %%rdx\n\t"			// Inicializa el contador del bucle interno %rdx a 0
+		"xor %%rdx, %%rdx\n\t"			// Inicializa el contador del bucle interno %rdx a 0 (cada columna)
 		"bucleColumnasVV:\n\t"
   			// Copia cada pixel calculado de imgO en imgD
 			"mov (%%rsi), %%r8\n\t"
@@ -158,12 +158,28 @@ void imageprocess::volteoVertical(uchar *imgO, uchar *imgD) {
 
 void imageprocess::iluminarLUT(uchar *tablaLUT, uchar gW) {
 	asm volatile(
-	"\n\t"
-
+	"mov %0, %%rbx\n\t"
+	"xor %%rcx, %%rcx\n\t"
+	"bucleIL:\n\t"
+		"mov %%rcx, %%rax\n\t"
+		"xor %%rdx, %%rdx\n\t"
+		"mov $255, %%r8\n\t"
+		"mulq %%r8\n\t"
+		"divq %%r8\n\t"
+		"mov %%rax, (%%rbx, %%rcx)\n\t"
+		"inc %%rcx\n\t"
+		"cmp %1, %%rcx\n\t"
+		"jl bucleIL\n\t"
+  "mov %1, %%rcx\n\t"
+	"bucleIL2:\n\t"
+		"movq $255, (%%rbx, %%rcx)\n\t"
+		"inc %%rcx\n\t"
+		"cmp $256, %%rcx\n\t"
+		"jl bucleIL2\n\t"
 
 	:
 	: "m" (tablaLUT), "m" (gW)
-	: "memory"
+	: "%rax", "%rbx", "%rcx", "%rdx", "r8", "memory"
 	);
 
 }
