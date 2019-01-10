@@ -95,9 +95,9 @@ void imageprocess::volteoHorizontal(uchar *imgO, uchar *imgD) {
 	"add $639, %%rsi\n\t"
 
 	"xor %%rcx, %%rcx\n\t"				// Inicializa el contador del bucle externo %rcx a 0
-	"bucleFilas:\n\t"
+	"bucleFilasVH:\n\t"
 		"xor %%rdx, %%rdx\n\t"			// Inicializa el contador del bucle interno %rdx a 0
-		"bucleColumnas:\n\t"
+		"bucleColumnasVH:\n\t"
   			// Copia cada pixel calculado de imgO en imgD
 			"mov (%%rsi), %%r8\n\t"
 			"mov %%r8, (%%rdi)\n\t"
@@ -107,12 +107,12 @@ void imageprocess::volteoHorizontal(uchar *imgO, uchar *imgD) {
 
 			"inc %%rdx\n\t"				// Incrementa el contador del bucle interno %rdx
 			"cmp $640, %%rdx\n\t"		// Control de iteracion del bucle interno
-			"jl bucleColumnas\n\t"
+			"jl bucleColumnasVH\n\t"
 		"add $1280, %%rsi\n\t"
 
 		"inc %%rcx\n\t"					// Incrementa el contador del bucle externo %rcx
 		"cmp $640, %%rcx\n\t"			// Control de iteracion del bucle externo
-		"jl bucleFilas\n\t"
+		"jl bucleFilasVH\n\t"
 
 	:
 	: "m" (imgO), "m" (imgD)
@@ -124,12 +124,33 @@ void imageprocess::volteoHorizontal(uchar *imgO, uchar *imgD) {
 void imageprocess::volteoVertical(uchar *imgO, uchar *imgD) {
 
 	asm volatile(
-	"\n\t"
+	"mov %0, %%rsi\n\t"					// Copia en %rsi la direccion de la imagen origen imgO
+	"mov %1, %%rdi\n\t"					// Copia en %rdi la direccion de la imagen destino imgD
+	"add $306560, %%rsi\n\t"			// 479*640 = 306560
 
+	"xor %%rcx, %%rcx\n\t"				// Inicializa el contador del bucle externo %rcx a 0
+	"bucleFilasVV:\n\t"
+		"xor %%rdx, %%rdx\n\t"			// Inicializa el contador del bucle interno %rdx a 0
+		"bucleColumnasVV:\n\t"
+  			// Copia cada pixel calculado de imgO en imgD
+			"mov (%%rsi), %%r8\n\t"
+			"mov %%r8, (%%rdi)\n\t"
+
+			"inc %%rsi\n\t"
+			"inc %%rdi\n\t"
+
+			"inc %%rdx\n\t"				// Incrementa el contador del bucle interno %rdx
+			"cmp $640, %%rdx\n\t"		// Control de iteracion del bucle interno
+			"jl bucleColumnasVV\n\t"
+		"sub $1280, %%rsi\n\t"
+
+		"inc %%rcx\n\t"					// Incrementa el contador del bucle externo %rcx
+		"cmp $640, %%rcx\n\t"			// Control de iteracion del bucle externo
+		"jl bucleFilasVV\n\t"
 
 	:
 	: "m" (imgO), "m" (imgD)
-	: "memory"
+	: "%rsi", "%rdi", "%rcx", "%rdx", "r8", "memory"
 	);
 
 }
