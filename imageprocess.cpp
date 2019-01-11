@@ -126,7 +126,7 @@ void imageprocess::volteoVertical(uchar *imgO, uchar *imgD) {
 	asm volatile(
 	"mov %0, %%rsi\n\t"					// Copia en %rsi la direccion de la imagen origen imgO
 	"mov %1, %%rdi\n\t"					// Copia en %rdi la direccion de la imagen destino imgD
-	"add $306560, %%rsi\n\t"			// 479*640 = 306560
+	"add $479*640, %%rsi\n\t"
 
 	"xor %%rcx, %%rcx\n\t"				// Inicializa el contador del bucle externo %rcx a 0 (cada fila)
 	"bucleFilasVV:\n\t"
@@ -187,12 +187,40 @@ void imageprocess::iluminarLUT(uchar *tablaLUT, uchar gW) {
 
 void imageprocess::oscurecerLUT(uchar *tablaLUT, uchar gB) {
 	asm volatile(
-	"\n\t"
-
+	"mov %0, %%rbx\n\t"
+	"xor %%rcx, %%rcx\n\t"
+	"bucleOL:\n\t"
+		"movb $0, (%%rbx, %%rcx)\n\t"
+		"inc %%rcx\n\t"
+		"cmp %1, %%cl\n\t"
+		"jle bucleOL\n\t"
+	"xor %%r8, %%r8\n\t"
+	"xor %%rcx, %%rcx\n\t"
+	"mov %1, %%cl\n\t"
+	"inc %%cl\n\t"
+	"bucleOL2:\n\t"
+		"mov $255, %%r8\n\t"
+		"sub %1, %%r8b\n\t"
+		"mov %%rcx, %%rax\n\t"
+		"sub %1, %%al\n\t"
+		"mov $255, %%r9b\n\t"
+		"mul %%r9b\n\t"
+		"xor %%dx, %%dx\n\t"
+		"cmp $0, %%r8\n\t"
+		"je divCero\n\t"
+		"div %%r8w\n\t"
+		"jmp cargarRes\n\t"
+		"divCero:\n\t"
+  			"mov $0, %%al\n\t"
+		"cargarRes:\n\t"
+		"mov %%al, (%%rbx, %%rcx)\n\t"
+		"inc %%rcx\n\t"
+		"cmp $256, %%rcx\n\t"
+		"jl bucleOL2\n\t"
 
 	:
 	: "m" (tablaLUT), "m" (gB)
-	: "memory"
+	: "%rax", "%rbx", "%rcx", "%rdx", "r8", "r9", "memory"
 	);
 
 }
@@ -238,7 +266,7 @@ void imageprocess::aplicarTablaLUT(uchar *tablaLUT, uchar *imgO, uchar *imgD) {
 		"inc %%rsi\n\t"
 		"inc %%rdi\n\t"
 		"inc %%rcx\n\t"
-		"cmp $307200, %%rcx\n\t"
+		"cmp $640*480, %%rcx\n\t"
 		"jl bucleAL\n\t"
 
 	:
