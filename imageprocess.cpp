@@ -161,18 +161,19 @@ void imageprocess::iluminarLUT(uchar *tablaLUT, uchar gW) {
 	"mov %0, %%rbx\n\t"
 	"xor %%rcx, %%rcx\n\t"
 	"bucleIL:\n\t"
-		"mov %%rcx, %%rax\n\t"
-		"xor %%rdx, %%rdx\n\t"
-		"mov $255, %%r8\n\t"
-		"mulq %%r8\n\t"
-		"divq %%r8\n\t"
-		"mov %%rax, (%%rbx, %%rcx)\n\t"
+		"mov %%cl, %%al\n\t"
+		"mov $255, %%r8b\n\t"
+		"mul %%r8b\n\t"
+		"xor %%dx, %%dx\n\t"
+		"divw %1\n\t"
+		"mov %%al, (%%rbx, %%rcx)\n\t"
 		"inc %%rcx\n\t"
-		"cmp %1, %%rcx\n\t"
+		"cmp %1, %%cl\n\t"
 		"jl bucleIL\n\t"
-  "mov %1, %%rcx\n\t"
+	"xor %%rcx, %%rcx\n\t"
+  	"mov %1, %%cl\n\t"
 	"bucleIL2:\n\t"
-		"movq $255, (%%rbx, %%rcx)\n\t"
+		"movb $255, (%%rbx, %%rcx)\n\t"
 		"inc %%rcx\n\t"
 		"cmp $256, %%rcx\n\t"
 		"jl bucleIL2\n\t"
@@ -225,12 +226,24 @@ void imageprocess::oscurecerLUTMejorado(uchar *tablaLUT, uchar gB) {
 
 void imageprocess::aplicarTablaLUT(uchar *tablaLUT, uchar *imgO, uchar *imgD) {
 	asm volatile(
-	"\n\t"
-
+	"mov %0, %%rbx\n\t"
+	"mov %1, %%rsi\n\t"
+	"mov %2, %%rdi\n\t"
+	"xor %%rcx, %%rcx\n\t"
+	"xor %%r8, %%r8\n\t"
+	"bucleAL:\n\t"
+		"mov (%%rsi), %%r8b\n\t"
+		"mov (%%rbx, %%r8), %%r9b\n\t"
+		"mov %%r9b, (%%rdi)\n\t"
+		"inc %%rsi\n\t"
+		"inc %%rdi\n\t"
+		"inc %%rcx\n\t"
+		"cmp $307200, %%rcx\n\t"
+		"jl bucleAL\n\t"
 
 	:
-	: "m" (imgO), "m" (tablaLUT), "m" (imgD)
-	: "memory"
+	: "m" (tablaLUT), "m" (imgO), "m" (imgD)
+	: "%rbx", "%rcx", "%rsi", "%rdi", "r8", "r9", "memory"
 	);
 
 }
