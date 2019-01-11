@@ -159,14 +159,20 @@ void imageprocess::volteoVertical(uchar *imgO, uchar *imgD) {
 void imageprocess::iluminarLUT(uchar *tablaLUT, uchar gW) {
 	asm volatile(
 	"mov %0, %%rbx\n\t"
+	"mov $255, %%r8\n\t"
 	"xor %%rcx, %%rcx\n\t"
 	"bucleIL:\n\t"
-		"mov %%cl, %%al\n\t"
-		"mov $255, %%r8b\n\t"
+		"mov %%rcx, %%rax\n\t"
 		"mul %%r8b\n\t"
 		"xor %%dx, %%dx\n\t"
-		"divw %1\n\t"
-		"mov %%al, (%%rbx, %%rcx)\n\t"
+		"cmpb $0, %1\n\t"
+		"je divCeroIL\n\t"
+		"divb %1\n\t"
+		"jmp cargarResIL\n\t"
+		"divCeroIL:\n\t"
+  			"mov $255, %%al\n\t"
+		"cargarResIL:\n\t"
+			"mov %%al, (%%rbx, %%rcx)\n\t"
 		"inc %%rcx\n\t"
 		"cmp %1, %%cl\n\t"
 		"jl bucleIL\n\t"
@@ -207,13 +213,13 @@ void imageprocess::oscurecerLUT(uchar *tablaLUT, uchar gB) {
 		"mul %%r9b\n\t"
 		"xor %%dx, %%dx\n\t"
 		"cmp $0, %%r8\n\t"
-		"je divCero\n\t"
+		"je divCeroOL\n\t"
 		"div %%r8w\n\t"
-		"jmp cargarRes\n\t"
-		"divCero:\n\t"
+		"jmp cargarResOL\n\t"
+		"divCeroOL:\n\t"
   			"mov $0, %%al\n\t"
-		"cargarRes:\n\t"
-		"mov %%al, (%%rbx, %%rcx)\n\t"
+		"cargarResOL:\n\t"
+			"mov %%al, (%%rbx, %%rcx)\n\t"
 		"inc %%rcx\n\t"
 		"cmp $256, %%rcx\n\t"
 		"jl bucleOL2\n\t"
@@ -261,8 +267,8 @@ void imageprocess::aplicarTablaLUT(uchar *tablaLUT, uchar *imgO, uchar *imgD) {
 	"xor %%r8, %%r8\n\t"
 	"bucleAL:\n\t"
 		"mov (%%rsi), %%r8b\n\t"
-		"mov (%%rbx, %%r8), %%r9b\n\t"
-		"mov %%r9b, (%%rdi)\n\t"
+		"mov (%%rbx, %%r8), %%r8b\n\t"
+		"mov %%r8b, (%%rdi)\n\t"
 		"inc %%rsi\n\t"
 		"inc %%rdi\n\t"
 		"inc %%rcx\n\t"
@@ -271,7 +277,7 @@ void imageprocess::aplicarTablaLUT(uchar *tablaLUT, uchar *imgO, uchar *imgD) {
 
 	:
 	: "m" (tablaLUT), "m" (imgO), "m" (imgD)
-	: "%rbx", "%rcx", "%rsi", "%rdi", "r8", "r9", "memory"
+	: "%rbx", "%rcx", "%rsi", "%rdi", "r8", "memory"
 	);
 
 }
