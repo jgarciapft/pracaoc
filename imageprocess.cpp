@@ -158,12 +158,28 @@ void imageprocess::volteoVertical(uchar *imgO, uchar *imgD) {
 
 void imageprocess::iluminarLUT(uchar *tablaLUT, uchar gW) {
 	asm volatile(
-	"\n\t"
-
+	"mov %0, %%rbx\n\t"
+	"xor %%rcx, %%rcx\n\t"
+	"bucleIL:\n\t"
+		"mov %%rcx, %%rax\n\t"
+		"xor %%rdx, %%rdx\n\t"
+		"mov $255, %%r8\n\t"
+		"mulq %%r8\n\t"
+		"divq %%r8\n\t"
+		"mov %%rax, (%%rbx, %%rcx)\n\t"
+		"inc %%rcx\n\t"
+		"cmp %1, %%rcx\n\t"
+		"jl bucleIL\n\t"
+  "mov %1, %%rcx\n\t"
+	"bucleIL2:\n\t"
+		"movq $255, (%%rbx, %%rcx)\n\t"
+		"inc %%rcx\n\t"
+		"cmp $256, %%rcx\n\t"
+		"jl bucleIL2\n\t"
 
 	:
 	: "m" (tablaLUT), "m" (gW)
-	: "memory"
+	: "%rax", "%rbx", "%rcx", "%rdx", "r8", "memory"
 	);
 
 }
