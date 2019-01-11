@@ -99,11 +99,11 @@ void imageprocess::volteoHorizontal(uchar *imgO, uchar *imgD) {
 		"xor %%rdx, %%rdx\n\t"			// Inicializa el contador del bucle interno %rdx a 0 (cada columna)
 		"bucleColumnasVH:\n\t"
   			// Copia cada pixel calculado de imgO en imgD
-			"mov (%%rsi), %%r8\n\t"
-			"mov %%r8, (%%rdi)\n\t"
+            "mov (%%rsi), %%r8b\n\t"
+            "mov %%r8b, (%%rdi)\n\t"
 
-			"dec %%rsi\n\t"
-			"inc %%rdi\n\t"
+            "dec %%rsi\n\t"
+            "inc %%rdi\n\t"
 
 			"inc %%rdx\n\t"				// Incrementa el contador del bucle interno %rdx
 			"cmp $640, %%rdx\n\t"		// Control de iteracion del bucle interno
@@ -111,7 +111,7 @@ void imageprocess::volteoHorizontal(uchar *imgO, uchar *imgD) {
 		"add $1280, %%rsi\n\t"
 
 		"inc %%rcx\n\t"					// Incrementa el contador del bucle externo %rcx
-		"cmp $640, %%rcx\n\t"			// Control de iteracion del bucle externo
+		"cmp $480, %%rcx\n\t"			// Control de iteracion del bucle externo
 		"jl bucleFilasVH\n\t"
 
 	:
@@ -133,8 +133,8 @@ void imageprocess::volteoVertical(uchar *imgO, uchar *imgD) {
 		"xor %%rdx, %%rdx\n\t"			// Inicializa el contador del bucle interno %rdx a 0 (cada columna)
 		"bucleColumnasVV:\n\t"
   			// Copia cada pixel calculado de imgO en imgD
-			"mov (%%rsi), %%r8\n\t"
-			"mov %%r8, (%%rdi)\n\t"
+			"mov (%%rsi), %%r8b\n\t"
+			"mov %%r8b, (%%rdi)\n\t"
 
 			"inc %%rsi\n\t"
 			"inc %%rdi\n\t"
@@ -145,7 +145,7 @@ void imageprocess::volteoVertical(uchar *imgO, uchar *imgD) {
 		"sub $1280, %%rsi\n\t"
 
 		"inc %%rcx\n\t"					// Incrementa el contador del bucle externo %rcx
-		"cmp $640, %%rcx\n\t"			// Control de iteracion del bucle externo
+		"cmp $480, %%rcx\n\t"			// Control de iteracion del bucle externo
 		"jl bucleFilasVV\n\t"
 
 	:
