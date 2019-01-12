@@ -167,12 +167,13 @@ void imageprocess::iluminarLUT(uchar *tablaLUT, uchar gW) {
 	"mov %0, %%rbx\n\t"					// Copia en %rbx la dirección de la tabla LUT
 	"xor %%rcx, %%rcx\n\t"				// Inicializa el contador los bucles %rcx a 0 (g). Rango [0, 255]
 	"xor %%rdx, %%rdx\n\t"				// Inicializa los 8 bytes de %rdx a 0 para almacenar en el byte bajo 'gW'
+	"mov $255, %%r8\n\t"				// Inicializa &r8 con la constante 255 para realizar la multiplicacion g * 255
  	"mov %1, %%dl\n\t"					// Copia 'gW' en el byte bajo de %rdx (%dl)
  	// PRIMER BUCLE: Calcula el nuevo nivel de gris (segun ecuacion*) de los píxeles de nivel de gris inferior a 'gW'
    	// *gn = (g * 255) / gW
 	"bucleIL:\n\t"
 		"mov %%rcx, %%rax\n\t"			// Copia 'g' a %rax para realizar posteriormente la división por 'gW' directamente
-		"imul $255, %%rax\n\t"			// g * 255
+		"mul %%r8b\n\t"					// Resultado parcial 1 (%al) = g * 255
 		"cmp $0, %%dl\n\t"				// Comprueba que 'gW' no sea 0 para evitar una SIGFPE por division por 0
 		"je divCeroIL\n\t"
 		"div %%dl\n\t"					// gW != 0 -> gn = 255 -> %al
@@ -180,7 +181,7 @@ void imageprocess::iluminarLUT(uchar *tablaLUT, uchar gW) {
 		"divCeroIL:\n\t"
   			"mov $255, %%al\n\t"		// gW == 0 -> El resultado es el nivel de gris más blanco (255)
 		"cargarResIL:\n\t"
-			"mov %%al, (%%rbx, %%rcx)\n\t"	// Copia el nuevo píxel calculado a la tabla LUT | LUT[g] = gn
+			"mov %%al, (%%rbx, %%rcx)\n\t"	// Copia el nuevo píxel calculado a la tabla LUT | LUT[g] = gn = %al
 		"inc %%rcx\n\t"
 		"cmp %%rdx, %%rcx\n\t"			// Control del primer bucle (g < gW)
 		"jl bucleIL\n\t"
@@ -194,7 +195,7 @@ void imageprocess::iluminarLUT(uchar *tablaLUT, uchar gW) {
 
 	:
 	: "m" (tablaLUT), "m" (gW)
-	: "%rax", "%rbx", "%rcx", "%rdx", "memory"
+	: "%rax", "%rbx", "%rcx", "%rdx", "r8", "memory"
 	);
 
 }
