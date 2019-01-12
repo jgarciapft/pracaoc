@@ -164,29 +164,32 @@ void imageprocess::volteoVertical(uchar *imgO, uchar *imgD) {
 void imageprocess::iluminarLUT(uchar *tablaLUT, uchar gW) {
 
 	asm volatile(
-	"mov %0, %%rbx\n\t"
-	"xor %%rcx, %%rcx\n\t"
-	"xor %%rdx, %%rdx\n\t"
- 	"mov %1, %%dl\n\t"
+	"mov %0, %%rbx\n\t"					// Copia en %rbx la dirección de la tabla LUT
+	"xor %%rcx, %%rcx\n\t"				// Inicializa el contador los bucles %rcx a 0 (g). Rango [0, 255]
+	"xor %%rdx, %%rdx\n\t"				// Inicializa los 8 bytes de %rdx a 0 para almacenar en el byte bajo 'gW'
+ 	"mov %1, %%dl\n\t"					// Copia 'gW' en el byte bajo de %rdx (%dl)
+ 	// PRIMER BUCLE: Calcula el nuevo nivel de gris (segun ecuacion*) de los píxeles de nivel de gris inferior a 'gW'
+   	// *gn = (g * 255) / gW
 	"bucleIL:\n\t"
-		"mov %%rcx, %%rax\n\t"
-		"imul $255, %%rax\n\t"
-		"cmp $0, %%dl\n\t"
+		"mov %%rcx, %%rax\n\t"			// Copia 'g' a %rax para realizar posteriormente la división por 'gW' directamente
+		"imul $255, %%rax\n\t"			// g * 255
+		"cmp $0, %%dl\n\t"				// Comprueba que 'gW' no sea 0 para evitar una SIGFPE por division por 0
 		"je divCeroIL\n\t"
-		"div %%dl\n\t"
+		"div %%dl\n\t"					// gW != 0 -> gn = 255 -> %al
 		"jmp cargarResIL\n\t"
 		"divCeroIL:\n\t"
-  			"mov $255, %%al\n\t"
+  			"mov $255, %%al\n\t"		// gW == 0 -> El resultado es el nivel de gris más blanco (255)
 		"cargarResIL:\n\t"
-			"mov %%al, (%%rbx, %%rcx)\n\t"
+			"mov %%al, (%%rbx, %%rcx)\n\t"	// Copia el nuevo píxel calculado a la tabla LUT | LUT[g] = gn
 		"inc %%rcx\n\t"
-		"cmp %%rdx, %%rcx\n\t"
+		"cmp %%rdx, %%rcx\n\t"			// Control del primer bucle (g < gW)
 		"jl bucleIL\n\t"
   	"mov %%rdx, %%rcx\n\t"
+	// SEGUNUDO BUCLE: Modifica los píxeles de nivel de gris superior o igual a 'gW' a completamente blanco (255)
 	"bucleIL2:\n\t"
-		"movb $255, (%%rbx, %%rcx)\n\t"
+		"movb $255, (%%rbx, %%rcx)\n\t"	// LUT[g] = gn = 255
 		"inc %%rcx\n\t"
-		"cmp $256, %%rcx\n\t"
+		"cmp $256, %%rcx\n\t"			// Control del segundo bucle (g < 256)
 		"jl bucleIL2\n\t"
 
 	:
@@ -199,40 +202,41 @@ void imageprocess::iluminarLUT(uchar *tablaLUT, uchar gW) {
 void imageprocess::oscurecerLUT(uchar *tablaLUT, uchar gB) {
 
 	asm volatile(
-	"mov %0, %%rbx\n\t"
-	"xor %%rcx, %%rcx\n\t"
+	"mov %0, %%rbx\n\t"					// Copia en %rbx la dirección de la tabla LUT
+	"xor %%rcx, %%rcx\n\t"				// Inicializa el contador los bucles %rcx a 0 (g). Rango [0, 255]
+ 	// PRIMER BUCLE: Modifica los píxeles de nivel de gris inferior o igual a 'gB' a completamente negro (0)
 	"bucleOL:\n\t"
-		"movb $0, (%%rbx, %%rcx)\n\t"
+		"movb $0, (%%rbx, %%rcx)\n\t"	// LUT[g] = gn = 0
 		"inc %%rcx\n\t"
-		"cmp %1, %%cl\n\t"
+		"cmp %1, %%cl\n\t"				// Control del primer bucle (g <= gB)
 		"jle bucleOL\n\t"
-	"xor %%r8, %%r8\n\t"
+	"mov $255, %%r9\n\t"				// Almacena en %%r9 la constante 255 para realizar la multiplicacion (g - gB) * 255
 	"xor %%rcx, %%rcx\n\t"
-	"mov %1, %%cl\n\t"
+	"mov %1, %%cl\n\t"					// Reinicializa el contador del bucle %rcx a gB + 1
 	"inc %%cl\n\t"
+ 	// SEGUNDO BUCLE: Calcula el nuevo nivel de gris (segun ecuacion*) de los píxeles de nivel de gris superior a 'gB'
+   	// *gn = ((g - gB) * 255)) / (255 - gB)
 	"bucleOL2:\n\t"
-		"mov $255, %%r8\n\t"
-		"sub %1, %%r8b\n\t"
+		"mov $255, %%r8\n\t"			// Almacena en %%r8 la constante 255 para realizar la resta 255 - gB
+		"sub %1, %%r8b\n\t"				// Resultado parcial 1 (%r8b) =  255 - gB
 		"mov %%rcx, %%rax\n\t"
-		"sub %1, %%al\n\t"
-		"mov $255, %%r9b\n\t"
-		"mul %%r9b\n\t"
-		"xor %%dx, %%dx\n\t"
-		"cmp $0, %%r8\n\t"
+		"sub %1, %%al\n\t"				// Resultado parcial 2 (%al) =  g - gB
+		"mul %%r9b\n\t"					// Resultado parcial 3 (%al) =  (g - gB) * 255
+		"cmp $0, %%r8\n\t"				// Comprueba que 'gB' no sea 255 para evitar una SIGFPE por division por 0 (255 - gB)
 		"je divCeroOL\n\t"
-		"div %%r8w\n\t"
+		"div %%r8b\n\t"					// gB != 255 -> Resultado final gn = ResultadoParcial3 / ResultadoParcial1
 		"jmp cargarResOL\n\t"
 		"divCeroOL:\n\t"
-  			"mov $0, %%al\n\t"
+  			"mov $0, %%al\n\t"			// gB != 255 -> gn = 0 -> %al
 		"cargarResOL:\n\t"
-			"mov %%al, (%%rbx, %%rcx)\n\t"
+			"mov %%al, (%%rbx, %%rcx)\n\t"	// Copia el nuevo píxel calculado a la tabla LUT | LUT[g] = gn
 		"inc %%rcx\n\t"
-		"cmp $256, %%rcx\n\t"
+		"cmp $256, %%rcx\n\t"			// Contol del segundo bucle (g < 256)
 		"jl bucleOL2\n\t"
 
 	:
 	: "m" (tablaLUT), "m" (gB)
-	: "%rax", "%rbx", "%rcx", "%rdx", "r8", "r9", "memory"
+	: "%rax", "%rbx", "%rcx", "r8", "r9", "memory"
 	);
 
 }
@@ -269,19 +273,20 @@ void imageprocess::oscurecerLUTMejorado(uchar *tablaLUT, uchar gB) {
 void imageprocess::aplicarTablaLUT(uchar *tablaLUT, uchar *imgO, uchar *imgD) {
 
 	asm volatile(
-	"mov %0, %%rbx\n\t"
-	"mov %1, %%rsi\n\t"
-	"mov %2, %%rdi\n\t"
-	"xor %%rcx, %%rcx\n\t"
-	"xor %%r8, %%r8\n\t"
+	"mov %0, %%rbx\n\t"					// Copia en %rbx la dirección de la tabla LUT
+	"mov %1, %%rsi\n\t"					// Copia en %rsi la dirección de la imagen de origen
+	"mov %2, %%rdi\n\t"					// Copia en %rdi la dirección de la imagen de destino
+	"xor %%rcx, %%rcx\n\t"				// Inicializa el contador del bucle %rcx a 0. Rango [0, w*h) (cada pixel de la imagen)
+	"xor %%r8, %%r8\n\t"				// Inicializa los 8 bytes de %r8 a 0 para almacenar en el byte bajo cada pixel tratado
+ 	// Aplica la tabla LUT a cada pixel de la imagen destino y almacena el resultado en la imagen destino | imgD[p] = LUT[p]
 	"bucleAL:\n\t"
-		"mov (%%rsi), %%r8b\n\t"
-		"mov (%%rbx, %%r8), %%r8b\n\t"
-		"mov %%r8b, (%%rdi)\n\t"
+		"mov (%%rsi), %%r8b\n\t"		// Almacena cada pixel origen
+		"mov (%%rbx, %%r8), %%r8b\n\t"	// Halla su equivalente en el destino por la tabla LUT
+		"mov %%r8b, (%%rdi)\n\t"		// Copia el pixel calculado a cada pixel destino
 		"inc %%rsi\n\t"
 		"inc %%rdi\n\t"
 		"inc %%rcx\n\t"
-		"cmp $640*480, %%rcx\n\t"
+		"cmp $640*480, %%rcx\n\t"		// Control del bucle (p < w*h) (cada pixel de la imagen)
 		"jl bucleAL\n\t"
 
 	:
