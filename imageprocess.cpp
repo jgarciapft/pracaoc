@@ -40,76 +40,76 @@ void imageprocess::rotar(uchar *imgO, uchar *imgD, float angle) {
 
 
 	//Insertar aquí el código del procedimiento
-	"mov %0, %%rsi\n\t"					// %rsi = imgO
-	"mov %1, %%rdi\n\t"					// %rdi = imgD
-	"xor %%r8, %%r8\n\t"				// %r8 = fD
-	"xor %%r10, %%r10\n\t"				// %r10 = fO
-	"xor %%r11, %%r11\n\t"				// %r11 = cO
-	"xor %%r14, %%r14\n\t"
-	"xor %%r15, %%r15\n\t"
-	"bucleFilasR:\n\t"
- 		"xor %%r9, %%r9\n\t"			// %r9 = cD
- 		"bucleColumnasR:\n\t"
-   			"mov %%r8, %%r12\n\t"
-   			"sub $400, %%r12\n\t"		// %r12 = fD - 400
-	  		"mov %%r9, %%r13\n\t"
-   			"sub $400, %%r13\n\t"		// %r13 = cD - 400
-   			"mov %%r12, %%rax\n\t"
-   			"mull %5\n\t"
-   			"mov %%eax, %%r14d\n\t"		// %r14 = cos1000 * (fD - 400)
-   			"mov %%r12, %%rax\n\t"
-   			"mull %4\n\t"
-   			"mov %%eax, %%r12d\n\t"		// %r12 = sin1000 * (fD - 400)
-   			"mov %%r13, %%rax\n\t"
-   			"mull %5\n\t"
-   			"mov %%eax, %%r15d\n\t"		// %r15 = cos1000 * (cD - 400)
-	  		"mov %%r13, %%rax\n\t"
-   			"mull %4\n\t"
-   			"mov %%eax, %%r13d\n\t"		// %r13 = sin1000 * (cD - 400)
-   			"add %%r13, %%r14\n\t"		// %r14 = sin1000 * (cD - 400) + cos1000 * (fD - 400)
-   			"sub %%r12, %%r15\n\t"		// %r15 = cos1000 * (cD - 400) - sin1000 * (fD - 400)
-
-   			"mov %%r14d, %%eax\n\t"
-   			"mov $1000, %%r12\n\t"
-			"xor %%edx, %%edx\n\t"
-   			"div %%r12d\n\t"
-   			"mov %%eax, %%r10d\n\t"		// %r10 (fO) = (sin1000 * (cD - 400) + cos1000 * (fD - 400)) / 1000
-
-	  		"mov %%r15d, %%eax\n\t"
-			"xor %%edx, %%edx\n\t"
-   			"div %%r12d\n\t"
-   			"mov %%eax, %%r11d\n\t"		// %r11 (cO) = (cos1000 * (cD - 400) - sin1000 * (fD - 400)) / 1000
-
-	  		"add $240, %%r10\n\t"		// %r10 (fO) += 240
-	  		"add $320, %%r11\n\t"		// %r11 (cO) += 320
-
-	 		"cmp $0, %%r10\n\t"
-	 		"jl elseR\n\t"
-	 		"cmp $480, %%r10\n\t"
-	 		"jge elseR\n\t"
-	 		"cmp $0, %%r11\n\t"
-	 		"jl elseR\n\t"
-	 		"cmp $640, %%r11\n\t"
-	 		"jge elseR\n\t"
-
-			"xor %%eax, %%eax\n\t"
-			"mov $640, %%r12\n\t"
-			"mov %%r10d, %%eax\n\t"
-			"mul %%r12d\n\t"
-			"add %%r11d, %%eax\n\t"		// %rax (indiceO) = fO * 640 + cO
-			"mov (%%rsi, %%rax), %%r12b\n\t"
-			"mov %%r12b, (%%rdi)\n\t"
-			"jmp sgteIterR\n\t"
-	 		"elseR:\n\t"
-	 			"movb $0, (%%rdi)\n\t"
-			"sgteIterR:\n\t"
- 				"inc %%rdi\n\t"
- 				"inc %%r9\n\t"
- 				"cmp $800, %%r9\n\t"
- 				"jl bucleColumnasR\n\t"
-		"inc %%r8\n\t"
-		"cmp $800, %%r8\n\t"
-		"jl bucleFilasR\n\t"
+//	"mov %0, %%rsi\n\t"					// %rsi = imgO
+//	"mov %1, %%rdi\n\t"					// %rdi = imgD
+//	"xor %%r8d, %%r8d\n\t"				// %r8 = fD
+//	"xor %%r10d, %%r10d\n\t"				// %r10 = fO
+//	"xor %%r11d, %%r11d\n\t"				// %r11 = cO
+//	"xor %%r14d, %%r14d\n\t"
+//	"xor %%r15d, %%r15d\n\t"
+//	"bucleFilasR:\n\t"
+// 		"xor %%r9d, %%r9d\n\t"			// %r9 = cD
+// 		"bucleColumnasR:\n\t"
+//   			"mov %%r8d, %%r12d\n\t"
+//   			"sub $400, %%r12d\n\t"		// %r12 = fD - 400
+//	  		"mov %%r9d, %%r13d\n\t"
+//   			"sub $400, %%r13d\n\t"		// %r13 = cD - 400
+//   			"mov %%r12d, %%eax\n\t"
+//   			"imull %5\n\t"
+//   			"mov %%eax, %%r14d\n\t"		// %r14 = cos1000 * (fD - 400)
+//   			"mov %%r12d, %%eax\n\t"
+//   			"imull %4\n\t"
+//   			"mov %%eax, %%r12d\n\t"		// %r12 = sin1000 * (fD - 400)
+//   			"mov %%r13d, %%eax\n\t"
+//   			"imull %5\n\t"
+//   			"mov %%eax, %%r15d\n\t"		// %r15 = cos1000 * (cD - 400)
+//	  		"mov %%r13d, %%eax\n\t"
+//   			"imull %4\n\t"
+//   			"mov %%eax, %%r13d\n\t"		// %r13 = sin1000 * (cD - 400)
+//   			"add %%r13d, %%r14d\n\t"		// %r14 = sin1000 * (cD - 400) + cos1000 * (fD - 400)
+//   			"sub %%r12d, %%r15d\n\t"		// %r15 = cos1000 * (cD - 400) - sin1000 * (fD - 400)
+//
+//   			"mov %%r14d, %%eax\n\t"
+//   			"mov $1000, %%r12d\n\t"
+//			"xor %%edx, %%edx\n\t"
+//   			"idiv %%r12d\n\t"
+//   			"mov %%eax, %%r10d\n\t"		// %r10 (fO) = (sin1000 * (cD - 400) + cos1000 * (fD - 400)) / 1000
+//
+//	  		"mov %%r15d, %%eax\n\t"
+//			"xor %%edx, %%edx\n\t"
+//   			"idiv %%r12d\n\t"
+//   			"mov %%eax, %%r11d\n\t"		// %r11 (cO) = (cos1000 * (cD - 400) - sin1000 * (fD - 400)) / 1000
+//
+//	  		"add $240, %%r10\n\t"		// %r10 (fO) += 240
+//	  		"add $320, %%r11\n\t"		// %r11 (cO) += 320
+//
+//	 		"cmp $0, %%r10\n\t"
+//	 		"jl elseR\n\t"
+//	 		"cmp $480, %%r10\n\t"
+//	 		"jge elseR\n\t"
+//	 		"cmp $0, %%r11\n\t"
+//	 		"jl elseR\n\t"
+//	 		"cmp $640, %%r11\n\t"
+//	 		"jge elseR\n\t"
+//
+//			"xor %%eax, %%eax\n\t"
+//			"mov $640, %%r12d\n\t"
+//			"mov %%r10d, %%eax\n\t"
+//			"imul %%r12d\n\t"
+//			"add %%r11d, %%eax\n\t"		// %rax (indiceO) = fO * 640 + cO
+//			"mov (%%rsi, %%rax), %%r12b\n\t"
+//			"mov %%r12b, (%%rdi)\n\t"
+//			"jmp sgteIterR\n\t"
+//	 		"elseR:\n\t"
+//	 			"movb $0, (%%rdi)\n\t"
+//			"sgteIterR:\n\t"
+// 				"inc %%rdi\n\t"
+// 				"inc %%r9d\n\t"
+// 				"cmp $800, %%r9d\n\t"
+// 				"jl bucleColumnasR\n\t"
+//		"inc %%r8d\n\t"
+//		"cmp $800, %%r8d\n\t"
+//		"jl bucleFilasR\n\t"
 
 	"fldcw %3\n\t"
 
@@ -146,70 +146,68 @@ void imageprocess::zoom(uchar *imgO, uchar *imgD, float s, int dx, int dy) {
 	"pop %%rax\n\t"
 
 	//Insertar aquí el código del procedimiento
-//	"mov %0, %%rsi\n\t"					// %rdi = imgO
-//	"mov %1, %%rdi\n\t"					// %rsi = imgD
-//	"xor %%r8, %%r8\n\t"				// %r8 = fD
-//	"xor %%r10, %%r10\n\t"				// %r10 = fO
-//	"bucleFilasZ:\n\t"
-//		"mov %%r8, %%rax\n\t"
-//		"add %4, %%eax\n\t"				// %rax = fD + dy
-//		"cmpl $0, %7\n\t"
-//		"je reducirF_Z\n\t"
-//		"xor %%edx, %%edx\n\t"
-//		"divl %6\n\t"
-//		"jmp almacenarFO_Z\n\t"
-//		"reducirF_Z:\n\t"
-//			"mull %6\n\t"
-//		"almacenarFO_Z:\n\t"
-//			"mov %%eax, %%r10d\n\t"		// %r10 (fO) = (fD + dy) # sInt
-//		"xor %%r9, %%r9\n\t"			// %r9 = cD
-//		"xor %%r11, %%r11\n\t"			// %r11 = cO
-//		"bucleColumnasZ:\n\t"
-//  			"mov %%r9, %%rax\n\t"
-//  			"add %4, %%eax\n\t"			// %rax = cD + dx
-//			"cmpl $0, %7\n\t"
-//			"je reducirC_Z\n\t"
-//   			"xor %%edx, %%edx\n\t"
-//  			"divl %5\n\t"
-//  			"jmp almacenarCO_Z\n\t"
-//  			"reducirC_Z:\n\t"
-//	 			"mull %5\n\t"
-//			"almacenarCO_Z:\n\t"
-//   				"mov %%eax, %%r11d\n\t"	// %r11 (fO) = (cD + dx) # sInt
-//
-//	   		"cmp $0, %%r10\n\t"
-//	 		"jl elseZ\n\t"
-//	 		"cmp $800, %%r10\n\t"
-//	 		"jge elseZ\n\t"
-//	 		"cmp $0, %%r11\n\t"
-//	 		"jl elseZ\n\t"
-//	 		"cmp $800, %%r11\n\t"
-//	 		"jge elseZ\n\t"
-//
-//			"xor %%eax, %%eax\n\t"
-//			"mov $800, %%r12\n\t"
-//			"mov %%r10d, %%eax\n\t"
-//			"mul %%r12d\n\t"
-//			"add %%r11d, %%eax\n\t"		// %rax (indiceO) = fO * 800 + cO
-//			"mov (%%rsi, %%rax), %%r12b\n\t"
-//			"mov %%r12b, (%%rdi)\n\t"
-//			"jmp sgteIterZ\n\t"
-//			"elseZ:\n\t"
-//				"movb $0, (%%rdi)\n\t"
-//			"sgteIterZ:\n\t"
-//				"inc %%rdi\n\t"
-//				"inc %%r9\n\t"
-//				"cmp $640, %%r9\n\t"
-//				"jl bucleColumnasZ\n\t"
-//		"inc %%r8\n\t"
-//		"cmp $480, %%r8\n\t"
-//		"jl bucleFilasZ\n\t"
+	"mov %0, %%rsi\n\t"					// %rdi = imgO
+	"mov %1, %%rdi\n\t"					// %rsi = imgD
+	"xor %%r8, %%r8\n\t"				// %r8 = fD
+	"xor %%r10, %%r10\n\t"				// %r10 = fO
+	"bucleFilasZ:\n\t"
+		"mov %%r8, %%rax\n\t"
+		"add %4, %%eax\n\t"				// %rax = fD + dy
+		"cmpl $0, %7\n\t"
+		"je reducirF_Z\n\t"
+		"xor %%edx, %%edx\n\t"
+		"idivl %6\n\t"
+		"jmp almacenarFO_Z\n\t"
+		"reducirF_Z:\n\t"
+			"imull %6\n\t"
+		"almacenarFO_Z:\n\t"
+			"mov %%eax, %%r10d\n\t"		// %r10 (fO) = (fD + dy) # sInt
+		"xor %%r9, %%r9\n\t"			// %r9 = cD
+		"xor %%r11, %%r11\n\t"			// %r11 = cO
+		"bucleColumnasZ:\n\t"
+  			"mov %%r9, %%rax\n\t"
+  			"add %3, %%eax\n\t"			// %rax = cD + dx
+			"cmpl $0, %7\n\t"
+			"je reducirC_Z\n\t"
+   			"xor %%edx, %%edx\n\t"
+  			"idivl %6\n\t"
+  			"jmp almacenarCO_Z\n\t"
+  			"reducirC_Z:\n\t"
+	 			"imull %6\n\t"
+			"almacenarCO_Z:\n\t"
+   				"mov %%eax, %%r11d\n\t"	// %r11 (fO) = (cD + dx) # sInt
+
+	   		"cmp $0, %%r10\n\t"
+	 		"jl elseZ\n\t"
+	 		"cmp $800, %%r10\n\t"
+	 		"jge elseZ\n\t"
+	 		"cmp $0, %%r11\n\t"
+	 		"jl elseZ\n\t"
+	 		"cmp $800, %%r11\n\t"
+	 		"jge elseZ\n\t"
+
+			"mov $800, %%rax\n\t"
+			"imul %%r10, %%rax\n\t"
+			"add %%r11, %%rax\n\t"		// %rax (indiceO) = fO * 800 + cO
+			"mov (%%rsi, %%rax), %%r11b\n\t"
+			"mov %%r11b, (%%rdi)\n\t"
+			"jmp sgteIterZ\n\t"
+			"elseZ:\n\t"
+				"movb $0, (%%rdi)\n\t"
+			"sgteIterZ:\n\t"
+				"inc %%rdi\n\t"
+				"inc %%r9\n\t"
+				"cmp $640, %%r9\n\t"
+				"jl bucleColumnasZ\n\t"
+		"inc %%r8\n\t"
+		"cmp $480, %%r8\n\t"
+		"jl bucleFilasZ\n\t"
 
 	"fldcw %5\n\t"
 
 	:
 	: "m" (imgO), "m" (imgD), "m" (s), "m" (dx), "m" (dy), "m" (cw), "m" (sInt), "m" (ampliar)
-	: "%rax", "%rdx", "%rsi", "%rdi", "r8", "r9", "r10", "r11", "r12", "memory"
+	: "%rax", "%rdx", "%rsi", "%rdi", "r8", "r9", "r10", "r11", "memory"
 	);
 
 
